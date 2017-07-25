@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="Custom Java Project build" default="runReport" basedir="." 
+	xmlns:gw="antlib:com.guidewire.ant.task" 
+	xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+	<property file="${propfile.name}" />
+	<property name="classes.dir" value="./bin"/>	
+	<property name="additionLib.dir" value="./lib"/>
+	
+	<path id="maven-ant-tasks.classpath" path="${additionLib.dir}/maven-ant-tasks-2.1.3.jar" />
+	<typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+	   uri="antlib:org.apache.maven.artifact.ant"
+	   classpathref="maven-ant-tasks.classpath" />
+
+	<!-- MAVEN repository from product -->
+	<artifact:dependencies pathId="dependency.classpath" filesetId="compile.fileset" useScope="runtime">
+		<localrepository path="${gw.app.home}/repository"/>		 		
+		<dependency groupId="com.guidewire.${product.type}" artifactId="${product.type}-gunit" version="1.0-SNAPSHOT" />
+	</artifact:dependencies>
+					
+	<path id="test.classpath">
+		<path refid="dependency.classpath"/>
+		<pathelement location="${classes.dir}"/>	 
+		<!-- Add registry xml path -->
+		<pathelement location="${gw.app.home}/modules/configuration/config/registry"/>	 		
+	</path>
+
+	<target name="run-unit-tests" description="run unit tests">
+		<echo>"Product type = ${product.type}"</echo>
+		<echo>"Home = ${gw.app.home}"</echo>
+		<echo>"classes = ${classes.dir}"</echo>
+		<property name="classes.path" refid="test.classpath"/>
+		<echo>"class path = ${classes.path}"</echo>
+		
+		<!-- Create the report directories if they don't exist -->
+		<mkdir dir="${reportdir}" />
+        <mkdir dir="${reportdir}/../html" />
+		
+		<junit showoutput="yes" haltonfailure="no" fork="on" dir="${gw.app.home}" printsummary="on">
+			<classpath refid="test.classpath"/> 
+			<formatter type="xml"/>
+			<assertions>
+			<enable/>
+			</assertions>
+			<jvmarg value="-Xmx2048m"/>
+			<jvmarg value="-Xms200m"/>
+			<jvmarg value="-XX:MaxPermSize=512m"/>
+			<jvmarg value="-ea"/>
+			<sysproperty key="product.type" value="${product.type}"/>
+			<sysproperty key="configenv.enable" value="true"/>
+			<sysproperty key="configenv.home" value="${gw.app.home}"/>				
+        	<sysproperty key="testpackage" value="${gunit.test.packages}"/>    	
+            <sysproperty key="reportdir" value="${reportdir}"/>
+			<sysproperty key="packages.under.test" value="${packages.under.test}"/>
+			<sysproperty key="gw.pc.env" value="standaloneh2"/>	
+  	  	    <batchtest todir="${reportdir}">
+				<fileset dir="${classes.dir}" casesensitive="no">
+					<include name="**/*TestSuite.class"/>
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+	
+	<target name="runReport" depends="run-unit-tests">
+		<junitreport todir="${reportdir}/../html">
+			<fileset dir="${reportdir}">
+				<include name="*.xml" />
+			</fileset>
+			<report format="frames" styledir="${basedir}/stylesheets"
+				todir="${reportdir}/../html" />
+		</junitreport>
+	</target>	
+</project>

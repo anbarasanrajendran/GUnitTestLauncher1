@@ -1,0 +1,25 @@
+<project name="GWSuiteTests" default="run-all">
+	<!-- target name="run-all" depends-"ContactManager,ClaimCenter,BillingCenter,PolicyCenter" /-->
+    <target name="run-all" depends="PolicyCenter,ClaimCenter" />
+
+	<target name="PolicyCenter">
+		<ant antfile="gosutest.xml">
+			<property name="propfile.name" value="pc-build.properties" />
+		</ant>
+	</target>
+	<target name="BillingCenter">
+		<ant antfile="gosutest.xml">
+			<property name="propfile.name" value="bc-build.properties" />
+		</ant>
+	</target>
+	<target name="ClaimCenter">
+		<ant antfile="gosutest.xml">
+			<property name="propfile.name" value="cc-build.properties" />
+		</ant>
+	</target>
+	<target name="ContactManager">
+		<ant antfile="gosutest.xml">
+			<property name="propfile.name" value="ab-build.properties" />
+		</ant>
+	</target>
+</project>
